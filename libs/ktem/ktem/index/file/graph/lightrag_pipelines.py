@@ -34,7 +34,7 @@ try:
     from lightrag.kg.shared_storage import initialize_pipeline_status
     from lightrag.operate import (
         _find_most_related_edges_from_entities,
-        _find_most_related_text_unit_from_entities,
+        _find_related_text_unit_from_entities as _find_most_related_text_unit_from_entities,
     )
     from lightrag.utils import EmbeddingFunc, compute_args_hash
 
@@ -232,6 +232,19 @@ async def lightrag_build_local_query_context(
     return entities_df, relations_df, sources_df
 
 
+def _get_or_create_event_loop():
+    """Get existing event loop or create a new one for the current thread."""
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_closed():
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+    return loop
+
+
 def build_graphrag(working_dir, llm_func, embedding_func):
     graphrag_func = LightRAG(
         working_dir=working_dir,
@@ -240,8 +253,10 @@ def build_graphrag(working_dir, llm_func, embedding_func):
     )
 
     # newer versions of LightRAG needs to be initialized before using
-    asyncio.run(graphrag_func.initialize_storages())
-    asyncio.run(initialize_pipeline_status())
+    # Use a persistent event loop to avoid Lock bound to different loop errors
+    loop = _get_or_create_event_loop()
+    loop.run_until_complete(graphrag_func.initialize_storages())
+    loop.run_until_complete(initialize_pipeline_status())
 
     return graphrag_func
 
@@ -514,7 +529,8 @@ class LightRAGRetrieverPipeline(BaseFileIndexRetriever):
 
         # only local mode support graph visualization
         if query_params.mode == "local":
-            entities, relationships, sources = asyncio.run(
+            loop = _get_or_create_event_loop()
+            entities, relationships, sources = loop.run_until_complete(
                 lightrag_build_local_query_context(graphrag_func, text, query_params)
             )
             documents = self.format_context_records(entities, relationships, sources)

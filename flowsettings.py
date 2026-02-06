@@ -196,16 +196,16 @@ if config("LOCAL_MODEL", default=""):
         "spec": {
             "__type__": "kotaemon.llms.ChatOpenAI",
             "base_url": KH_OLLAMA_URL,
-            "model": config("LOCAL_MODEL", default="qwen2.5:7b"),
+            "model": config("LOCAL_MODEL", default="gemma3:latest"),
             "api_key": "ollama",
         },
-        "default": False,
+        "default": True,
     }
     KH_LLMS["ollama-long-context"] = {
         "spec": {
             "__type__": "kotaemon.llms.LCOllamaChat",
             "base_url": KH_OLLAMA_URL.replace("v1/", ""),
-            "model": config("LOCAL_MODEL", default="qwen2.5:7b"),
+            "model": config("LOCAL_MODEL", default="gemma3:latest"),
             "num_ctx": 8192,
         },
         "default": False,
@@ -218,7 +218,7 @@ if config("LOCAL_MODEL", default=""):
             "model": config("LOCAL_MODEL_EMBEDDINGS", default="nomic-embed-text"),
             "api_key": "ollama",
         },
-        "default": False,
+        "default": True,
     }
     KH_EMBEDDINGS["fast_embed"] = {
         "spec": {
@@ -243,7 +243,7 @@ KH_LLMS["google"] = {
         "model_name": "gemini-1.5-flash",
         "api_key": GOOGLE_API_KEY,
     },
-    "default": not IS_OPENAI_DEFAULT,
+    "default": False,
 }
 KH_LLMS["groq"] = {
     "spec": {
@@ -288,7 +288,7 @@ KH_EMBEDDINGS["google"] = {
         "model": "models/text-embedding-004",
         "google_api_key": GOOGLE_API_KEY,
     },
-    "default": not IS_OPENAI_DEFAULT,
+    "default": False,
 }
 KH_EMBEDDINGS["mistral"] = {
     "spec": {
@@ -342,7 +342,7 @@ SETTINGS_REASONING = {
     },
     "lang": {
         "name": "Language",
-        "value": "en",
+        "value": "ko",
         "choices": [(lang, code) for code, lang in SUPPORTED_LANGUAGE_MAP.items()],
         "component": "dropdown",
     },
@@ -354,7 +354,7 @@ SETTINGS_REASONING = {
 }
 
 USE_GLOBAL_GRAPHRAG = config("USE_GLOBAL_GRAPHRAG", default=True, cast=bool)
-USE_NANO_GRAPHRAG = config("USE_NANO_GRAPHRAG", default=False, cast=bool)
+USE_NANO_GRAPHRAG = config("USE_NANO_GRAPHRAG", default=True, cast=bool)
 USE_LIGHTRAG = config("USE_LIGHTRAG", default=True, cast=bool)
 USE_MS_GRAPHRAG = config("USE_MS_GRAPHRAG", default=True, cast=bool)
 
